@@ -1,0 +1,13 @@
+FROM alpine:3.7
+ARG PAGES_REPO_NWO=j-tt/r-i2p-wiki
+ARG proxy=socks5://172.81.81.6:9150
+ENV PAGES_REPO_NWO=$PAGES_REPO_NWO JEKYLL_ENV=production proxy=$proxy
+RUN apk update && apk add git ruby ruby-dev make gcc g++ musl musl-dev ruby-rdoc ruby-irb ruby-xmlrpc libxml2 zlib zlib-dev markdown ruby-bundler
+RUN adduser -h /var/www/ -D user
+RUN git config --global http.proxy $proxy
+WORKDIR /var/www/
+RUN chown -R user .
+USER user
+RUN bundle config --local path /var/www/.bundle
+COPY loop.sh /usr/bin/loop.sh
+CMD loop.sh
