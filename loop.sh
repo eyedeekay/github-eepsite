@@ -9,5 +9,10 @@ grep "gem 'github-pages', group: :jekyll_plugins" Gemfile || \
     echo "gem 'github-pages', group: :jekyll_plugins" | tee -a Gemfile
 grep "gem '$theme', group: :jekyll_plugins" Gemfile || \
     echo "gem '$theme', group: :jekyll_plugins" | tee -a Gemfile
+grep "baseurl:" _config.yaml && \
+    grep -v "baseurl:" _config.yaml > _config.yaml.bak && \
+    mv _config.yaml.bak _config.yaml
+grep "baseurl:" _config.yaml || \
+    echo "baseurl: \"\"" | tee -a _config.yaml
 bundle install
 bundle exec jekyll serve --port 8090 --host 0.0.0.0
