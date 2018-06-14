@@ -22,7 +22,7 @@ i2pd: build-i2pd run-i2pd
 
 build-github:
 	docker build --rm \
-		--build-arg PAGES_REPO_NWO="j-tt/r-i2p-wiki" \
+		--build-arg PAGES_REPO_NWO="eyedeekay/r-i2p-wiki" \
 		--build-arg  proxy=socks5://172.81.81.6:9150 \
 		--build-arg theme=jekyll-theme-minimal \
 		-f Dockerfile.github -t eyedeekay/eepsite-github .
