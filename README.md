@@ -1,9 +1,9 @@
 Mirroring an existing Github Pages site using a Static eepSite
 ==============================================================
 
-This is kind of a softball tutorial, it's almost the same as the **[Previous tutoria](BasicStaticeepSite.md):**
+This is kind of a softball tutorial, it's almost the same as the **[Previous tutorial](BasicStaticeepSite.md):**
 but it's intended specifically to allow you to mirror a Github Pages based site
-using Jekyll to i2p using i2pd and darkhttpd. Of course, this means that the
+using Jekyll to i2p using i2pd and Tor. Of course, this means that the
 eepSite is by definition linked to your identity on Github, but this might be
 desirable, for instance for i2p applications that collaborate primarily by way
 of Github, but who wish to have a presence on i2p as well. Probably other cases
