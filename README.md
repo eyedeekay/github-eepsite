@@ -1,8 +1,6 @@
 Mirroring an existing Github Pages site using a Static eepSite
 ==============================================================
 
-*(and possibly some light trickery)*
-
 This is kind of a softball tutorial, it's almost the same as the **[Previous tutoria](BasicStaticeepSite.md):**
 but it's intended specifically to allow you to mirror a Github Pages based site
 using Jekyll to i2p using i2pd and darkhttpd. Of course, this means that the
@@ -65,8 +63,8 @@ tunnels are running on the same i2p router. If you no longer want the original
 darkhttpd tunnel, then you can just delete the [DARKHTTPD] section from your
 tunnels.conf.
 
-Obfuscating the IP address of your git container
-------------------------------------------------
+Obfuscating the IP address of your container host
+-------------------------------------------------
 
 In order to fetch your repositories from git pseudonymously, or in order to
 obfuscate your location as a git user, you will need to ensure that git is
@@ -82,9 +80,9 @@ For the purposes of this demonstration, we're going to assume that the pertinent
 adversaries do not have sufficient power to link your fetching of packages via
 the rubygems package manager to your eepsite activity. If that's an issue for
 you, I kinda hope you didn't need this tutorial. It also assumes that you are
-not concerned about separating contextual identities because you are only going
-to use this Tor SocksProxy to fetch git repositories associated with one account
-anyway. So here's our Tor container Dockerfile
+not concerned about separating contextual identities *because* you are only
+going to use this Tor SocksProxy to fetch git repositories associated with one
+account anyway. So here's our Tor container Dockerfile:
 
 ### Tor container Dockerfile
 
@@ -158,7 +156,12 @@ Mirroring your github page
 --------------------------
 
 Once your Tor service is up, you're ready to start mirroring your github page.
-This
+To do this, while only fetching git repositories over Tor, you can use an Alpine
+Linux container with ruby, ruby-bundler, and some libraries. We're also going to
+configure our tools, git and bundle, but not use them to fetch any resources
+yet.
+
+### Github Pages Mirror Dockerfile
 
 ```Dockerfile
 FROM alpine:3.7
@@ -176,17 +179,57 @@ COPY loop.sh /usr/bin/loop.sh
 CMD loop.sh
 ```
 
+Finally, we need to create a launcher script. This script will create the site
+folder, populate it, guarantee the contents of the Gemfile and serve the site.
+
+### Github Pages Mirror Congigurator
+
 ```Shell
 #! /usr/bin/env /bin/sh
-gem install --user-install jekyll jekyll-theme-minimal github-pages kramdown jekyll-feed bundler
 git config --global http.proxy $proxy
-mkdir -p /var/www/site && cd /var/www/site
-git clone https://github.com/$PAGES_REPO_NWO .
+git clone https://github.com/$PAGES_REPO_NWO /var/www/site
+cd /var/www/site || exit
 touch Gemfile
 grep "source 'https://rubygems.org'" Gemfile || \
     echo "source 'https://rubygems.org'" | tee -a Gemfile
 grep "gem 'github-pages', group: :jekyll_plugins" Gemfile || \
     echo "gem 'github-pages', group: :jekyll_plugins" | tee -a Gemfile
+grep "gem '$theme', group: :jekyll_plugins" Gemfile || \
+    echo "gem '$theme', group: :jekyll_plugins" | tee -a Gemfile
 bundle install
 bundle exec jekyll serve --port 8090 --host 0.0.0.0
 ```
+
+Now you've got a container ready to build and run, which will host a github
+page mirror on i2p, but only fetch the repo from github over Tor. Every time you
+run the container, you'll get the most up-to-date version of the ruby packages
+you need.
+
+### Build the container
+
+This container can generically mirror any github page passed to it using the
+--build-arg PAGES\_REPO\_NWO option. For example, in order to mirror this wiki,
+you can pass j-tt/r-i2p-wiki:
+
+```
+docker build --rm \
+	--build-arg PAGES_REPO_NWO="j-tt/r-i2p-wiki" \
+	--build-arg  proxy=socks5://172.81.81.6:9150 \
+    --build-arg theme=jekyll-theme-minimal \
+	-f Dockerfile.github -t eyedeekay/eepsite-github .
+```
+Now it's ready to run.
+
+```
+docker run --restart=always -i -t -d \
+	--name eepsite-github \
+	--network eepsite \
+	--network-alias eepsite-github \
+	--hostname eepsite-github \
+	--link eepsite-tor \
+	--ip 172.81.81.5 \
+	eyedeekay/eepsite-github
+```
+
+It will take quite a while to bootstrap the github pages environment, but soon
+you will have a githhub pages mirror as an eepSite.

@@ -22,13 +22,13 @@ i2pd: build-i2pd run-i2pd
 
 build-github:
 	docker build --rm \
-		--build-arg ARG PAGES_REPO_NWO="j-tt/r-i2p-wiki" \
-		--build-arg  https_proxy=socks5://172.81.81.6:9150 \
-		--build-arg  http_proxy=socks5://172.81.81.6:9150 \
+		--build-arg PAGES_REPO_NWO="j-tt/r-i2p-wiki" \
+		--build-arg  proxy=socks5://172.81.81.6:9150 \
+		--build-arg theme=jekyll-theme-minimal \
 		-f Dockerfile.github -t eyedeekay/eepsite-github .
 
 run-github: network clean-github
-	docker run --restart=always -i -t \
+	docker run --restart=always -i -t -d \
 		--name eepsite-github \
 		--network eepsite \
 		--network-alias eepsite-github \
